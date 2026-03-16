@@ -4,6 +4,7 @@ public class Main {
                 .setInputFilePath("input.txt")
                 .setOutputFilePath("output.txt")
                 .build();
-        fileProcessor.execute();
+        fileProcessor.extract();
+        fileProcessor.push();
     }
 }

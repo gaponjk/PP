@@ -16,39 +16,40 @@ public class FileProcessor {
         this.inputFilePath = builder.inputFilePath;
         this.outputFilePath = builder.outputFilePath;
     }
-    private FileProcessor(String input,String output) {
+
+    private FileProcessor(String input, String output) {
         this.inputFilePath = input;
         this.outputFilePath = output;
     }
 
-    public void execute() {
+    public void extract() {
         try {
             String inputData = readFromFile(inputFilePath);
-            inputData=processSqrt(inputData);
-            String processedData = processArithmeticOperationsWithRegex(inputData.trim());
+            inputData = processSqrt(inputData);
+            OperationValues.setResult(processArithmeticOperationsWithRegex(inputData.trim()));
 
-            writeToFile(outputFilePath, processedData);
-
-            ConsoleHelper.writeMessage("Обработка завершена. Данные записаны в " + outputFilePath);
         } catch (IOException e) {
             ConsoleHelper.writeMessage("Ошибка при работе с файлами: " + e.getMessage());
         }
     }
+    public void push(){
 
+    }
     private String readFromFile(String filePath) throws IOException {
         return Files.readString(Path.of(filePath));
     }
 
-    private void writeToFile(String filePath, String data) throws IOException {
-        Files.writeString(Path.of(filePath), data);
+    private void writeToFile(String filePath, ArrayList<Double>arrayList) throws IOException {
+        Files.writeString(Path.of(filePath), arrayList.toString());
     }
+
     //решаю все корни внутри
-    private String processSqrt(String inputData){
+    private String processSqrt(String inputData) {
         Pattern pattern = Pattern.compile("sqrt\\((\\s*\\d+(\\.\\d+)?\\s*)\\)");
         Matcher matcher = pattern.matcher(inputData);
 
         StringBuilder result = new StringBuilder();
-        DecimalFormat decimalFormat=new DecimalFormat("#.###");
+        DecimalFormat decimalFormat = new DecimalFormat("#.###");
         while (matcher.find()) {
             double x = Double.parseDouble(matcher.group(1));
             double sqrtValue = Math.sqrt(x);
@@ -58,21 +59,17 @@ public class FileProcessor {
         matcher.appendTail(result);
         return result.toString();
     }
-    private String processArithmeticOperationsWithRegex(String data) {
+
+    private ArrayList<Double> processArithmeticOperationsWithRegex(String data) {
+        ArrayList<Double> arrayList = new ArrayList<>();
         Pattern pattern = Pattern.compile("(\\(\\s*)?((\\d+(\\.\\d+)?\\s*\\)*\\s*[+\\-*/]\\s*)+(\\d+(\\.\\d+)?))");
         Matcher matcher = pattern.matcher(data);
 
-        StringBuilder result = new StringBuilder();
-        DecimalFormat decimalFormat=new DecimalFormat("#.###");
         while (matcher.find()) {
             String expression = matcher.group();
-            double evalResult = evaluate(expression);
-
-            matcher.appendReplacement(result, String.valueOf(decimalFormat.format(evalResult)));
+            arrayList.add(evaluate(expression));
         }
-
-        matcher.appendTail(result);
-        return result.toString();
+        return arrayList;
     }
 
     private double evaluate(String expression) {
@@ -82,6 +79,7 @@ public class FileProcessor {
 
         return evaluatePostfix(postfix);
     }
+
     //RPN
     private List<String> convertToPostfix(String expression) {
         Stack<Character> operators = new Stack<>();
